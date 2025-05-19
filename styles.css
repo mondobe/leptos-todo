@@ -1,0 +1,85 @@
+:root {
+    --dark-color: #2b303a;
+    --dark-sad: #444648;
+    --light-accent-bg: #92dce5;
+    --light-bg: #eee5e9;
+    --light-outline: #e3e6e9;
+
+    --font-family: "Gill Sans", "Gill Sans MT", Calibri, 'Trebuchet MS', sans-serif;
+}
+
+body {
+    color: var(--dark-color);
+    background-color: var(--light-bg);
+    padding: 5px;
+    font-size: large;
+}
+
+* {
+    font-family: var(--font-family);
+}
+
+h1 {
+    margin: 18px 12px;
+}
+
+p,
+pre {
+    margin: 6px;
+}
+
+div.todo-area {
+    background-color: var(--light-accent-bg);
+    padding: 10px;
+    max-width: 800px;
+}
+
+div.todo {
+    display: flex;
+    background-color: white;
+    padding: 10px;
+    outline: solid 3px var(--light-outline);
+    margin: 8px 4px;
+    max-width: 100%;
+    align-items: center;
+}
+
+div.todo-controls {
+    display: flex;
+    height: min-content;
+    margin-left: 5px;
+}
+
+.todo-text {
+    width: 100%;
+    max-width: 100%;
+    flex-grow: 0;
+    overflow-wrap: anywhere;
+}
+
+textarea {
+    outline: solid var(--light-outline) 3px;
+    border: none;
+    resize: none;
+}
+
+button {
+    --pad: 4px;
+    --font-size: 1.2rem;
+
+    font-size: var(--font-size);
+    text-align: center;
+    background-color: var(--dark-color);
+    color: white;
+    padding: var(--pad) var(--pad);
+    border: none;
+    min-width: calc(2 * var(--pad) + var(--font-size));
+    margin: 3px;
+    flex-shrink: 0;
+    flex-grow: 0;
+}
+
+button:disabled {
+    background-color: var(--dark-sad);
+    color: var(--light-outline);
+}
