@@ -2,6 +2,7 @@
     --dark-color: #2b303a;
     --dark-sad: #444648;
     --light-accent-bg: #92dce5;
+    --completed-accent-bg: #eaabbf;
     --light-bg: #eee5e9;
     --light-outline: #e3e6e9;
 
@@ -29,9 +30,17 @@ pre {
 }
 
 div.todo-area {
-    background-color: var(--light-accent-bg);
     padding: 10px;
     max-width: 800px;
+}
+
+.active-todo-area {
+    background-color: var(--light-accent-bg);
+}
+
+.completed-todo-area {
+    margin-top: 12px;
+    background-color: var(--completed-accent-bg);
 }
 
 div.todo {
@@ -58,14 +67,20 @@ div.todo-controls {
 }
 
 textarea {
+    --pad: 5px;
+    --font-size: 1em;
+
     outline: solid var(--light-outline) 3px;
     border: none;
     resize: none;
+    font-size: var(--font-size);
+    padding: var(--pad);
+    height: calc(var(--font-size) + 2 * var(--pad));
 }
 
 button {
     --pad: 4px;
-    --font-size: 1.2rem;
+    --font-size: 1.2em;
 
     font-size: var(--font-size);
     text-align: center;
