@@ -78,6 +78,11 @@ textarea {
     height: calc(var(--font-size) + 2 * var(--pad));
 }
 
+input[type="file"] {
+    display: none;
+}
+
+label.import,
 button {
     --pad: 4px;
     --font-size: 1.2em;

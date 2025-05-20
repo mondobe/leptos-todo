@@ -3,17 +3,13 @@
 use leptos::{
     ev::KeyboardEvent,
     html::{Button, Input, Textarea},
-    leptos_dom::logging::console_log,
     prelude::*,
 };
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use web_sys::{
     Blob, HtmlLinkElement, Url,
-    wasm_bindgen::{JsCast, JsValue},
+    wasm_bindgen::{JsValue, prelude::Closure},
 };
-
-// TODO:
-// - JSON Import/Export
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -90,26 +86,54 @@ fn App() -> impl IntoView {
         });
     };
 
-    let add_todo = move || {
+    let push_todo = move |list: &mut Vec<Todo>| {
         let cur_key_val = current_key.get_untracked();
-        active_todos.update(|t| {
-            let new_todo = Todo {
-                key: cur_key_val,
-                content: RwSignal::new(String::new()),
-                edit: Callback::new(move |(area, key)| edit_todo(area, key)),
-                complete: Callback::new(move |key| complete_todo(key)),
-                delete: Callback::new(move |key| delete_todo(key)),
-                restore: Callback::new(move |key| restore_todo(key)),
-            };
-            t.push(new_todo);
-        });
-        active_todo_key.set(Some((TodoArea::Active, cur_key_val)));
+        let new_todo = Todo {
+            key: cur_key_val,
+            content: RwSignal::new(String::new()),
+            edit: Callback::new(move |(area, key)| edit_todo(area, key)),
+            complete: Callback::new(move |key| complete_todo(key)),
+            delete: Callback::new(move |key| delete_todo(key)),
+            restore: Callback::new(move |key| restore_todo(key)),
+        };
+        let cur_len = list.len();
+        list.push(new_todo);
         current_key.set(cur_key_val + 1);
+        (cur_len, cur_key_val)
     };
+
+    let add_todo = move || {
+        active_todos.update(|t| {
+            let (_, new_todo_key) = push_todo(t);
+            active_todo_key.set(Some((TodoArea::Active, new_todo_key)));
+        });
+    };
+
+    let file_import_closure = Closure::new(move |js_text: JsValue| {
+        let text = js_text.as_string().unwrap();
+        let saved: Option<SavedTodos> = serde_json::from_str(&text).ok();
+        let saved = saved.unwrap();
+        active_todos.update(|ts| {
+            ts.clear();
+            for t in saved.active {
+                let (i, _) = push_todo(ts);
+                ts[i].content.set(t);
+            }
+        });
+        completed_todos.update(|ts| {
+            ts.clear();
+            for t in saved.completed {
+                let (i, _) = push_todo(ts);
+                ts[i].content.set(t);
+            }
+        });
+    });
 
     let import = move || {
         let input_elem: web_sys::HtmlInputElement = import_ref.get().unwrap();
-        let files = input_elem.files();
+        let files = input_elem.files().unwrap();
+        let file = files.item(0).unwrap();
+        let _file_text_promise = file.text().then(&file_import_closure);
     };
 
     let export = move || {
@@ -133,9 +157,11 @@ fn App() -> impl IntoView {
         let download_element: JsValue = document().create_element("a").unwrap().into();
         let download_element: HtmlLinkElement = download_element.into();
 
+        let timestamp = chrono::Local::now().format("%y-%m%d-%H%M");
         download_element
-            .set_attribute("download", "todo.json")
+            .set_attribute("download", &format!("todo-{timestamp}.json"))
             .unwrap();
+
         download_element.set_attribute("href", &blob_url).unwrap();
         document()
             .body()
@@ -157,7 +183,10 @@ fn App() -> impl IntoView {
     });
 
     view! {
-        <input type="file" accept="text/json" on:change=move |_| import() node_ref=import_ref />
+        <label class="import">
+            <input type="file" accept="text/json" class="import" on:change=move |_| import() node_ref=import_ref />
+            Import
+        </label>
         <button on:click=move |_| export()>Export</button>
         <div class="todo-area active-todo-area">
             <button on:click=move |_| add_todo() disabled=move || active_todo_key.get().is_some() node_ref=add_ref>"+"</button>
@@ -178,7 +207,7 @@ fn App() -> impl IntoView {
 
         {
             move || if completed_todos.get().is_empty() {
-                view!{}.into_any()
+                ().into_any()
             } else {
                 view! {
                     <div class="todo-area completed-todo-area">
@@ -189,7 +218,7 @@ fn App() -> impl IntoView {
                                 "Show Completed"
                             }
                         }</button>
-                        <Show when=move || show_completed.get() fallback=move || view!{}>
+                        <Show when=move || show_completed.get() fallback=move || ()>
                             {
                                 move || completed_todos
                                     .get()
@@ -234,10 +263,8 @@ fn Todo(todo: Todo, active: bool, area: TodoArea) -> impl IntoView {
             {
                 if active {
                     let test_enter_text = move |key_press: KeyboardEvent| {
-                        if &key_press.key() == "Enter" {
-                            if !key_press.shift_key() {
-                                finish_editing();
-                            }
+                        if &key_press.key() == "Enter" && !key_press.shift_key() {
+                            finish_editing();
                         }
                     };
 
