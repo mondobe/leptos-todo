@@ -29,6 +29,12 @@ pre {
     margin: 6px;
 }
 
+p.disclaimer {
+    font-size: medium;
+    margin-top: 30px;
+    color: var(--dark-sad);
+}
+
 div.todo-area {
     padding: 10px;
     max-width: 800px;

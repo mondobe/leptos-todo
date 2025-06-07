@@ -7,6 +7,7 @@ edition = "2024"
 chrono = "0.4.41"
 console_error_panic_hook = "0.1.7"
 leptos = { version = "0.8.2", features = ["csr"] }
+leptos-use = { version = "0.16.0-beta2" }
 serde = { version = "1.0.219", features = ["serde_derive"] }
 serde_json = "1.0.140"
 web-sys = { version = "0.3.77", features = ["Blob", "File", "FileList", "Url"] }
